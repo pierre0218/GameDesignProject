@@ -18,6 +18,8 @@ int frame = 0;
 
 // hotkey callbacks
 void QuitGame(BYTE, BOOL4);
+void OnMouseLeftClick(int x, int y);
+void OnMouseLeftDrag(int x, int y);
 
 // timer callbacks
 void GameAI(int);
@@ -28,8 +30,8 @@ void MousePosition(int posx, int posy);
 
 float mousePos[2];
 
-float ScreenWidth = 1024;
-float ScreenHeight = 576;
+const float ScreenWidth = 1024;
+const float ScreenHeight = 576;
 
 
 /*------------------
@@ -66,6 +68,8 @@ void FyMain(int argc, char **argv)
 	FyDefineHotKey(FY_ESCAPE, QuitGame, FALSE);  // escape for quiting the game
 
 	FyBindMouseMoveFunction(MousePosition);
+
+	FyBindMouseFunction(LEFT_MOUSE, OnMouseLeftClick, OnMouseLeftDrag, NULL, NULL);
 
 	CameraManager::instance()->SetTarget(mainActor.GetFnCharacterID());
 
@@ -184,4 +188,22 @@ void QuitGame(BYTE code, BOOL4 value)
 			FyQuitFlyWin32();
 		}
 	}
+}
+
+void OnMouseLeftClick(int x, int y)
+{
+	float worldPos[4], mousePos[2];
+
+	mousePos[0] = x;
+	mousePos[1] = y;
+
+	CameraManager::instance()->ScreenPointToWorld(mousePos, worldPos);
+
+	mainActor.SetTargetPos(worldPos);
+}
+
+
+void OnMouseLeftDrag(int x, int y)
+{
+	
 }

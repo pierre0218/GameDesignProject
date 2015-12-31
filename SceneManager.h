@@ -32,4 +32,8 @@ public:
 	{
 		return terrain;
 	}
+	OBJECTid GetTerrainID()
+	{
+		return tID;
+	}
 };

@@ -133,5 +133,37 @@ void CameraManager::Update(int skip)
 
 void CameraManager::ScreenPointToWorld(float* screenPos, float* worldPos)
 {
+	/*float viewMatrix[16], projectionMatrix[16];
+	camera.GetViewingMatrix(viewMatrix);
+	camera.GetProjectionMatrix(projectionMatrix);
 
+	float pvMatrix[16], invertPVMatrix[16];
+	
+	MathHelper::Matrix16Multiply(projectionMatrix, viewMatrix, pvMatrix);
+	MathHelper::InvertMatrix16(pvMatrix, invertPVMatrix);
+
+	float in[4];
+	float winZ = 1.0;
+
+
+	in[0] = (2.0f*((float)(screenPos[0] - 0) / (screenW - 0))) - 1.0f,
+	in[1] = (2.0f*((float)(screenPos[1] - 0) / (screenH - 0))) - 1.0f;
+	in[2] = 2.0* winZ - 1.0;
+	in[3] = 1.0;
+
+	MathHelper::Matrix16MultiplyVector(invertPVMatrix, in, worldPos);
+
+	worldPos[3] = 1.0 / worldPos[3];
+
+	worldPos[0] *= worldPos[3];
+	worldPos[1] *= worldPos[3];
+	worldPos[2] *= worldPos[3];
+
+	float camPos[3];
+	camera.GetPosition(camPos);
+
+	worldPos[0] = camPos[0] + camPos[0] * worldPos[0];
+	worldPos[1] = camPos[1] + camPos[1] * worldPos[1];*/
+
+	GEOMETRYid hitPoint = vp.HitPosition(SceneManager::instance()->GetTerrainID(), cID, (int)(screenPos[0]), (int)(screenPos[1]), worldPos);
 }

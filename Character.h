@@ -9,6 +9,12 @@ class Character
 	bool dead;
 	char* mModelName;
 	FnCharacter mCharacter;
+
+	float targetPos[3];
+	float initPos[3];
+	void walk();
+	bool isWalking = false;
+
 public:
 	Character(char* modelName);
 	int HP = 0;
@@ -25,5 +31,21 @@ public:
 	FnCharacter GetFnCharacter()
 	{
 		return mCharacter;
+	}
+
+	void SetTargetPos(float* pos)
+	{
+		if (pos[2] > 0 && pos[2] < 10)
+		{
+			targetPos[0] = pos[0];
+			targetPos[1] = pos[1];
+			targetPos[2] = pos[2];
+
+			mCharacter.GetPosition(initPos);
+
+			mCharacter.SetCurrentAction(NULL, 0, runID, 5.0f);
+
+			isWalking = true;
+		}
 	}
 };
