@@ -2,11 +2,13 @@
 
 #include "SceneManager.h"
 #include "CameraManager.h"
+#include "FXManager.h"
 #include "MathHelper.h"
 #include "Character.h"
 
 SceneManager *SceneManager::s_instance = 0;
 CameraManager *CameraManager::s_instance = 0;
+FXManager *FXManager::s_instance = 0;
 
 
 Character mainActor("Lyubu2");
@@ -44,6 +46,7 @@ void FyMain(int argc, char **argv)
 
 	SceneManager::instance()->Start();
 	CameraManager::instance()->Start();
+	FXManager::instance()->Start();
 
 	mainActor.Start();
 
@@ -100,6 +103,7 @@ void GameAI(int skip)
 {
 	SceneManager::instance()->Update(skip);
 	CameraManager::instance()->Update(skip);
+	FXManager::instance()->Update(skip);
 
 	mainActor.Update(skip);
 
@@ -192,7 +196,7 @@ void QuitGame(BYTE code, BOOL4 value)
 
 void OnMouseLeftClick(int x, int y)
 {
-	float worldPos[4], mousePos[2];
+	float worldPos[3], mousePos[2];
 
 	mousePos[0] = x;
 	mousePos[1] = y;
@@ -200,6 +204,8 @@ void OnMouseLeftClick(int x, int y)
 	CameraManager::instance()->ScreenPointToWorld(mousePos, worldPos);
 
 	mainActor.SetTargetPos(worldPos);
+
+	FXManager::instance()->CreateFX(worldPos);
 }
 
 

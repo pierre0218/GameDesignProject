@@ -14,12 +14,17 @@
     <ClInclude Include="..\..\Include\Fly.h" />
     <ClInclude Include="CameraManager.h" />
     <ClInclude Include="Character.h" />
+    <ClInclude Include="FSMState.h" />
+    <ClInclude Include="FSMSystem.h" />
+    <ClInclude Include="FXManager.h" />
     <ClInclude Include="MathHelper.h" />
     <ClInclude Include="SceneManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CameraManager.cpp" />
     <ClCompile Include="Character.cpp" />
+    <ClCompile Include="FSMState.cpp" />
+    <ClCompile Include="FXManager.cpp" />
     <ClCompile Include="MainProgram.cpp" />
     <ClCompile Include="SceneManager.cpp" />
   </ItemGroup>
