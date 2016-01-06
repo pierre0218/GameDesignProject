@@ -4,9 +4,11 @@ class SceneManager
 {
 	static SceneManager *s_instance;
 	SCENEid sID;  // the 3D scene
+	SCENEid sID2; // the 2D scene
 	OBJECTid tID; //the terrain
 	ROOMid terrainRoomID = FAILED_ID;
 	FnScene scene;
+	FnScene scene2D;
 	FnObject terrain;
 public:
 	static SceneManager *instance()
@@ -26,6 +28,16 @@ public:
 	FnScene GetScene()
 	{
 		return scene;
+	}
+
+	FnScene GetScene2D()
+	{
+		return scene2D;
+	}
+
+	SCENEid GetUISceneID()
+	{
+		return sID2;
 	}
 
 	FnObject GetTerrain()

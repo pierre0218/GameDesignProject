@@ -30,6 +30,15 @@ void CameraManager::Start()
 	CameraFocus();
 }
 
+void CameraManager::Render()
+{
+	// render the whole scene
+	vp.Render3D(cID, TRUE, TRUE);
+
+	// render the sprites
+	vp.RenderSprites(SceneManager::instance()->GetUISceneID(), FALSE, TRUE);  // no clear the background but clear the z buffer
+}
+
 void CameraManager::CameraFocus()
 {
 	float negativeDistance[3];

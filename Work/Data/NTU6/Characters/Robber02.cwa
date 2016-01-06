@@ -17,7 +17,7 @@ Body Robber_02
    Parent Root
    RootBone Bip01
    Actions 10
-      ActionData CombatIdle SimpleAction COMBATIDEL
+      ActionData Idle SimpleAction COMBATIDEL
       ActionData MoveRight SimpleAction RSHIFT
       ActionData MoveLeft SimpleAction LSHIFT
       ActionData NormalAttack1 SimpleAction LIGHTATK01

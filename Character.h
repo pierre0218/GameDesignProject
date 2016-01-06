@@ -4,6 +4,10 @@ class Character
 {
 	ACTIONid idleID, attackID, runID, damage1ID, damage2ID, dieID;
 	CHARACTERid actorID;
+
+	GAMEFX_SYSTEMid gFXID = FAILED_ID;
+	OBJECTid dummyID = FAILED_ID;
+
 	bool gotHit;
 	int gotHitTimer;
 	bool dead;
@@ -42,10 +46,20 @@ public:
 			targetPos[2] = pos[2];
 
 			mCharacter.GetPosition(initPos);
+			char* name = mCharacter.GetName();
 
 			mCharacter.SetCurrentAction(NULL, 0, runID, 5.0f);
 
 			isWalking = true;
 		}
 	}
+
+	bool CheckMouseHit(float* worldPos);
+
+	void Selected();
+	void UnSelected();
+
+	bool operator==(Character& rhs);
+	bool operator!=(Character& rhs);
+	bool operator!=(int rhs);
 };

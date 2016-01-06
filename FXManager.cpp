@@ -11,7 +11,7 @@ void FXManager::Start()
 void FXManager::Update(int skip)
 {
 	// play game FX
-	if (gFXID != FAILED_ID) {
+/*	if (gFXID != FAILED_ID) {
 		FnGameFXSystem gxS(gFXID);
 		BOOL4 beOK = gxS.Play((float)skip, ONCE);
 		if (!beOK) {
@@ -19,7 +19,7 @@ void FXManager::Update(int skip)
 			SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
 			gFXID = FAILED_ID;
 		}
-	}
+	}*/
 }
 
 void FXManager::CreateFX(float* xyz)
@@ -38,5 +38,6 @@ void FXManager::CreateFX(float* xyz)
 	BOOL4 beOK = gxS.Load("SpellHome_01", TRUE);
 	if (beOK) {
 		gxS.SetPlayLocation(xyz);
+		gxS.PlayFrame(30);
 	}
 }

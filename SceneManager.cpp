@@ -8,6 +8,11 @@ void SceneManager::Start()
 	FySetTexturePath("Data\\NTU6\\Scenes\\Textures");
 	FySetScenePath("Data\\NTU6\\Scenes");
 
+	// create a 2D scene for sprite rendering which will be rendered on the top of 3D
+	sID2 = FyCreateScene(10);
+	scene2D.ID(sID2);
+	scene2D.SetSpriteWorldSize(800, 600);         // 2D scene size in pixels
+
 	// create a 3D scene
 	sID = FyCreateScene(10);
 

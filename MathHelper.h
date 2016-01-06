@@ -73,6 +73,19 @@ public:
 		return result;
 	}
 
+	static float VectorDistance(float* vec1, float* vec2)
+	{
+		float result;
+		float distanceVec[3];
+		distanceVec[0] = vec1[0] - vec2[0];
+		distanceVec[1] = vec1[1] - vec2[1];
+		distanceVec[2] = vec1[2] - vec2[2];
+
+		result = VectorMagnitude(distanceVec);
+
+		return result;
+	}
+
 	static void VectorNormalize(float* vec1, float* result)
 	{
 		float magnitude = VectorMagnitude(vec1);

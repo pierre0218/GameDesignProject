@@ -15,6 +15,7 @@ class CameraManager
 	float moveSpeed = 10;
 	float rot_x = 0;
 	float rot_y = -30;
+
 public:
 	static CameraManager *instance()
 	{
@@ -44,10 +45,6 @@ public:
 	{
 		targetid = tid;
 	}
-	void Render()
-	{
-		// render the whole scene
-		vp.Render3D(cID, TRUE, TRUE);
-	}
+	void Render();
 	void ScreenPointToWorld(float* screenPos, float* worldPos);
 };

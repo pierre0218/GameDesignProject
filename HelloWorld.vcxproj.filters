@@ -9,6 +9,8 @@
     <ClInclude Include="FXManager.h" />
     <ClInclude Include="FSMState.h" />
     <ClInclude Include="FSMSystem.h" />
+    <ClInclude Include="UnitManager.h" />
+    <ClInclude Include="SpriteManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="SceneManager.cpp" />
@@ -17,5 +19,8 @@
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="FXManager.cpp" />
     <ClCompile Include="FSMState.cpp" />
+    <ClCompile Include="FSMSystem.cpp" />
+    <ClCompile Include="UnitManager.cpp" />
+    <ClCompile Include="SpriteManager.cpp" />
   </ItemGroup>
 </Project>

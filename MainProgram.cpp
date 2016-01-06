@@ -1,17 +1,25 @@
 #include "FlyWin32.h"
+#include <vector>
 
+#include "Character.h"
 #include "SceneManager.h"
 #include "CameraManager.h"
+//#include "UnitManager.h"
 #include "FXManager.h"
+#include "SpriteManager.h"
 #include "MathHelper.h"
-#include "Character.h"
+
+using namespace std;
 
 SceneManager *SceneManager::s_instance = 0;
 CameraManager *CameraManager::s_instance = 0;
 FXManager *FXManager::s_instance = 0;
+//UnitManager *UnitManager::s_instance = 0;
+SpriteManager *SpriteManager::s_instance = 0;
 
+Character* currentSelectCharacter;
 
-Character mainActor("Lyubu2");
+vector<Character> all_units;
 
 TEXTid textID = FAILED_ID;
 
@@ -21,6 +29,7 @@ int frame = 0;
 // hotkey callbacks
 void QuitGame(BYTE, BOOL4);
 void OnMouseLeftClick(int x, int y);
+void OnMouseRightClick(int x, int y);
 void OnMouseLeftDrag(int x, int y);
 
 // timer callbacks
@@ -35,6 +44,9 @@ float mousePos[2];
 const float ScreenWidth = 1024;
 const float ScreenHeight = 576;
 
+void CreateUnit(char* model, float posX, float posY);
+int CheckMouseHit(float* worldPos);
+void AllUnitsUpdate(int skip);
 
 /*------------------
 the main program
@@ -47,22 +59,19 @@ void FyMain(int argc, char **argv)
 	SceneManager::instance()->Start();
 	CameraManager::instance()->Start();
 	FXManager::instance()->Start();
-
-	mainActor.Start();
-
+//	UnitManager::instance()->Start();
 
 	// put the character on terrain
 	float pos[3], fDir[3], uDir[3];
 	pos[0] = 3569.0f; pos[1] = -3208.0f; pos[2] = 1000.0f;
-	fDir[0] = 1.0f; fDir[1] = -1.0f; fDir[2] = 0.0f;
-	uDir[0] = 0.0f; uDir[1] = 0.0f; uDir[2] = 1.0f;
-	mainActor.GetFnCharacter().SetDirection(fDir, uDir);
+//	UnitManager::instance()->CreateUnit("Robber02",pos[0]+50, pos[1]);
+//	UnitManager::instance()->CreateUnit("Robber02", pos[0], pos[1]+50);
 
-	mainActor.GetFnCharacter().SetTerrainRoom(SceneManager::instance()->GetRoomID(), 10.0f);
-	beOK = mainActor.GetFnCharacter().PutOnTerrain(pos);
+	CreateUnit("Lyubu2", pos[0], pos[1]);
+	CreateUnit("Robber02", pos[0] + 50, pos[1]);
+	CreateUnit("Robber02", pos[0], pos[1] + 50);
 
-	mainActor.InitActions("Idle", "NormalAttack1", "Run", NULL, NULL, NULL);
-
+	//SpriteManager::instance()->CreateSprite("Skeleton_color", 200, 200, 500, 200, 0);
 
 	// create a text object for displaying messages on screen
 	textID = FyCreateText("Trebuchet MS", 18, FALSE, FALSE);
@@ -73,8 +82,9 @@ void FyMain(int argc, char **argv)
 	FyBindMouseMoveFunction(MousePosition);
 
 	FyBindMouseFunction(LEFT_MOUSE, OnMouseLeftClick, OnMouseLeftDrag, NULL, NULL);
+	FyBindMouseFunction(RIGHT_MOUSE, OnMouseRightClick, NULL, NULL, NULL);
 
-	CameraManager::instance()->SetTarget(mainActor.GetFnCharacterID());
+	CameraManager::instance()->SetTarget(all_units[0].GetFnCharacterID());
 
 	// bind timers, frame rate = 30 fps
 	FyBindTimer(0, 30.0f, GameAI, TRUE);
@@ -104,8 +114,9 @@ void GameAI(int skip)
 	SceneManager::instance()->Update(skip);
 	CameraManager::instance()->Update(skip);
 	FXManager::instance()->Update(skip);
+//	UnitManager::instance()->Update(skip);
 
-	mainActor.Update(skip);
+	AllUnitsUpdate(skip);
 
 	if ((mousePos[0] - ScreenWidth / 2) > ScreenWidth/2 - 50)
 	{
@@ -194,6 +205,31 @@ void QuitGame(BYTE code, BOOL4 value)
 	}
 }
 
+void OnMouseRightClick(int x, int y)
+{
+	float worldPos[3], mousePos[2];
+
+	mousePos[0] = x;
+	mousePos[1] = y;
+
+	CameraManager::instance()->ScreenPointToWorld(mousePos, worldPos);
+
+	int unitIdx = CheckMouseHit(worldPos);
+	if (unitIdx != -1)
+	{
+		currentSelectCharacter = &all_units[unitIdx];
+		currentSelectCharacter->Selected();
+	}
+	else
+	{
+		if (currentSelectCharacter != NULL)
+		{
+			currentSelectCharacter->UnSelected();
+			currentSelectCharacter = NULL;
+		}
+	}
+}
+
 void OnMouseLeftClick(int x, int y)
 {
 	float worldPos[3], mousePos[2];
@@ -203,13 +239,82 @@ void OnMouseLeftClick(int x, int y)
 
 	CameraManager::instance()->ScreenPointToWorld(mousePos, worldPos);
 
-	mainActor.SetTargetPos(worldPos);
+	int unitIdx = CheckMouseHit(worldPos);
+	if (unitIdx != -1)
+	{
+		if (currentSelectCharacter != NULL)
+		{
+			currentSelectCharacter->UnSelected();
+		}
 
-	FXManager::instance()->CreateFX(worldPos);
+		currentSelectCharacter = &all_units[unitIdx];
+		currentSelectCharacter->Selected();
+	}
+	else
+	{
+		if (currentSelectCharacter != NULL)
+		{
+			currentSelectCharacter->SetTargetPos(worldPos);
+		}
+	}
+
+	//mainActor.SetTargetPos(worldPos);
+
+	//mainActor.Selected();
+
+	//FXManager::instance()->CreateFX(worldPos);
 }
 
 
 void OnMouseLeftDrag(int x, int y)
 {
 	
+}
+
+void CreateUnit(char* model, float posX, float posY)
+{
+	float pos[3], fDir[3], uDir[3];
+	pos[0] = posX; pos[1] = posY; pos[2] = 1000.0f;
+	fDir[0] = 1.0f; fDir[1] = -1.0f; fDir[2] = 0.0f;
+	uDir[0] = 0.0f; uDir[1] = 0.0f; uDir[2] = 1.0f;
+
+	Character actor(model);
+
+	actor.Start();
+
+	actor.GetFnCharacter().SetDirection(fDir, uDir);
+
+	actor.GetFnCharacter().SetTerrainRoom(SceneManager::instance()->GetRoomID(), 10.0f);
+	BOOL4 beOK = actor.GetFnCharacter().PutOnTerrain(pos);
+
+	actor.InitActions("Idle", "NormalAttack1", "Run", NULL, NULL, NULL);
+
+	all_units.push_back(actor);
+}
+
+int CheckMouseHit(float* worldPos)
+{
+	int ii;
+	for (ii = 0; ii < all_units.size(); ii++)
+	{
+		float pos[3];
+		all_units[ii].GetFnCharacter().GetPosition(pos);
+
+		float distance = MathHelper::VectorDistance(worldPos, pos);
+		if (distance < 70)
+		{
+			return ii;
+		}
+	}
+
+	return -1;
+}
+
+void AllUnitsUpdate(int skip)
+{
+	int ii;
+	for (ii = 0; ii < all_units.size(); ii++)
+	{
+		all_units[ii].Update(skip);
+	}
 }
