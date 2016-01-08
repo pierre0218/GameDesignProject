@@ -18,7 +18,7 @@ Body Donzo
    RootBone Bip01
    Actions 10
       ActionData Idle SimpleAction Idle
-      ActionData AttackL1 SimpleAction AttackL1
+      ActionData NormalAttack1 SimpleAction AttackL1
       ActionData AttackL2 SimpleAction AttackL2
       ActionData DamageL SimpleAction DamageL
       ActionData DamageH SimpleAction DamageH

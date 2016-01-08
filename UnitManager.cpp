@@ -1,6 +1,6 @@
 #include "UnitManager.h"
 #include "SceneManager.h"
-#include "MathHelper.h"
+//#include "MathHelper.h"
 
 void UnitManager::Start()
 {
@@ -23,7 +23,7 @@ void UnitManager::CreateUnit(char* model, float posX, float posY)
 	fDir[0] = 1.0f; fDir[1] = -1.0f; fDir[2] = 0.0f;
 	uDir[0] = 0.0f; uDir[1] = 0.0f; uDir[2] = 1.0f;
 
-	Character actor(model);
+	Character actor(model,0);
 
 	actor.Start();
 
@@ -42,7 +42,7 @@ void UnitManager::RemoveUnit(CHARACTERid character)
 
 }
 
-Character UnitManager::CheckMouseHit(float* worldPos)
+int UnitManager::CheckMouseHit(float* worldPos)
 {
 	int ii;
 	for (ii = 0; ii < all_units.size(); ii++)
@@ -50,10 +50,10 @@ Character UnitManager::CheckMouseHit(float* worldPos)
 		float pos[3];
 		all_units[ii].GetFnCharacter().GetPosition(pos);
 
-		float distance = MathHelper::VectorDistance(worldPos, pos);
+		float distance = 0;// MathHelper::VectorDistance(worldPos, pos);
 		if (distance < 70)
 		{
-			return all_units[ii];
+			return ii;
 		}
 	}
 

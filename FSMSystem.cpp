@@ -5,7 +5,7 @@ FSMSystem::FSMSystem()
 
 }
 
-void FSMSystem::AddState(FSMState s)
+void FSMSystem::AddState(FSMState* s)
 {
 	// First State inserted is also the Initial state,
 	//   the state the machine is in when the simulation begins
@@ -13,7 +13,7 @@ void FSMSystem::AddState(FSMState s)
 	{
 		states.push_back(s);
 		currentState = s;
-		currentStateID = s.stateID;
+		currentStateID = s->stateID;
 		return;
 	}
 
@@ -21,7 +21,7 @@ void FSMSystem::AddState(FSMState s)
 	int ii;
 	for (ii = 0; ii < states.size(); ii++)
 	{
-		if (states[ii].stateID == s.stateID)
+		if (states[ii]->stateID == s->stateID)
 		{
 			return;
 		}
@@ -39,10 +39,10 @@ void FSMSystem::DeleteState(StateID id)
 	}
 
 	// Search the List and delete the state if it's inside it
-	vector<FSMState>::const_iterator cii;
+	vector<FSMState*>::const_iterator cii;
 	for (cii = states.begin(); cii != states.end(); cii++)
 	{
-		if ((*cii).stateID == id)
+		if ((*cii)->stateID == id)
 		{
 			states.erase(cii);
 			return;
@@ -59,7 +59,7 @@ void FSMSystem::PerformTransition(Transition trans)
 	}
 
 	// Check if the currentState has the transition passed as argument
-	StateID id = currentState.GetOutputState(trans);
+	StateID id = currentState->GetOutputState(trans);
 	if (id == StateID::NullStateID)
 	{
 		return;
@@ -71,15 +71,15 @@ void FSMSystem::PerformTransition(Transition trans)
 	int ii;
 	for (ii = 0; ii < states.size(); ii++)
 	{
-		if (states[ii].stateID == currentStateID)
+		if (states[ii]->stateID == currentStateID)
 		{
 			// Do the post processing of the state before setting the new one
-			currentState.DoBeforeLeaving();
+			currentState->DoBeforeLeaving();
 
 			currentState = states[ii];
 
 			// Reset the state to its desired condition before it can reason or act
-			currentState.DoBeforeEntering();
+			currentState->DoBeforeEntering();
 			break;
 		}
 	}

@@ -7,8 +7,7 @@ using namespace std;
 class UnitManager
 {
 	static UnitManager *s_instance;
-private:
-	vector<Character> all_units;
+
 public:
 	static UnitManager *instance()
 	{
@@ -17,11 +16,13 @@ public:
 		return s_instance;
 	}
 
+	vector<Character> all_units;
+
 	void Start();
 	void Update(int skip);
 	void CreateUnit(char* model, float posX, float posY);
 	void RemoveUnit(CHARACTERid character);
 
-	Character CheckMouseHit(float* worldPos);
+	int CheckMouseHit(float* worldPos);
 };
 

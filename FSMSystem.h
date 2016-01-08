@@ -6,15 +6,15 @@ using namespace std;
 class FSMSystem
 {
 private:
-	vector<FSMState> states;
+	vector<FSMState*> states;
 
 protected:
 
 public:
 	StateID currentStateID;
-	FSMState currentState;
+	FSMState* currentState;
 	FSMSystem();
-	void AddState(FSMState s);
+	void AddState(FSMState* s);
 	void DeleteState(StateID id);
 	void PerformTransition(Transition trans);
 };

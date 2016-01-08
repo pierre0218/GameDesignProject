@@ -7,7 +7,7 @@
 //#include "UnitManager.h"
 #include "FXManager.h"
 #include "SpriteManager.h"
-#include "MathHelper.h"
+//#include "MathHelper.h"
 
 using namespace std;
 
@@ -19,7 +19,10 @@ SpriteManager *SpriteManager::s_instance = 0;
 
 Character* currentSelectCharacter;
 
-vector<Character> all_units;
+vector<Character> Character::all_units;
+vector<CHARACTERid> Character::all_unit_ids;
+map<CHARACTERid, Character*> Character::all_units_map;
+
 
 TEXTid textID = FAILED_ID;
 
@@ -44,9 +47,11 @@ float mousePos[2];
 const float ScreenWidth = 1024;
 const float ScreenHeight = 576;
 
-void CreateUnit(char* model, float posX, float posY);
+void CreateUnit(char* model, int party, float posX, float posY);
 int CheckMouseHit(float* worldPos);
 void AllUnitsUpdate(int skip);
+
+void BuildUnitsMap();
 
 /*------------------
 the main program
@@ -59,7 +64,7 @@ void FyMain(int argc, char **argv)
 	SceneManager::instance()->Start();
 	CameraManager::instance()->Start();
 	FXManager::instance()->Start();
-//	UnitManager::instance()->Start();
+	//UnitManager::instance()->Start();
 
 	// put the character on terrain
 	float pos[3], fDir[3], uDir[3];
@@ -67,9 +72,10 @@ void FyMain(int argc, char **argv)
 //	UnitManager::instance()->CreateUnit("Robber02",pos[0]+50, pos[1]);
 //	UnitManager::instance()->CreateUnit("Robber02", pos[0], pos[1]+50);
 
-	CreateUnit("Lyubu2", pos[0], pos[1]);
-	CreateUnit("Robber02", pos[0] + 50, pos[1]);
-	CreateUnit("Robber02", pos[0], pos[1] + 50);
+	CreateUnit("Lyubu2", 0, pos[0], pos[1]);
+	CreateUnit("Robber02", 0, pos[0] + 50, pos[1]);
+	CreateUnit("Robber02", 0, pos[0], pos[1] + 50);
+	CreateUnit("Donzo2", 1, pos[0] + 100, pos[1]+300);
 
 	//SpriteManager::instance()->CreateSprite("Skeleton_color", 200, 200, 500, 200, 0);
 
@@ -84,7 +90,9 @@ void FyMain(int argc, char **argv)
 	FyBindMouseFunction(LEFT_MOUSE, OnMouseLeftClick, OnMouseLeftDrag, NULL, NULL);
 	FyBindMouseFunction(RIGHT_MOUSE, OnMouseRightClick, NULL, NULL, NULL);
 
-	CameraManager::instance()->SetTarget(all_units[0].GetFnCharacterID());
+	CameraManager::instance()->SetTarget(Character::all_units[0].GetFnCharacterID());
+
+	BuildUnitsMap();
 
 	// bind timers, frame rate = 30 fps
 	FyBindTimer(0, 30.0f, GameAI, TRUE);
@@ -93,6 +101,18 @@ void FyMain(int argc, char **argv)
 	// invoke the system
 	FyInvokeFly(TRUE);
 }
+
+void BuildUnitsMap()
+{
+	int ii;
+	for (ii = 0; ii < Character::all_units.size(); ii++)
+	{
+		Character::all_units_map[Character::all_units[ii].GetFnCharacterID()] = &Character::all_units[ii];
+	}
+}
+
+
+
 
 float* GetMousePosition()
 {
@@ -114,7 +134,7 @@ void GameAI(int skip)
 	SceneManager::instance()->Update(skip);
 	CameraManager::instance()->Update(skip);
 	FXManager::instance()->Update(skip);
-//	UnitManager::instance()->Update(skip);
+	//UnitManager::instance()->Update(skip);
 
 	AllUnitsUpdate(skip);
 
@@ -212,22 +232,12 @@ void OnMouseRightClick(int x, int y)
 	mousePos[0] = x;
 	mousePos[1] = y;
 
-	CameraManager::instance()->ScreenPointToWorld(mousePos, worldPos);
-
-	int unitIdx = CheckMouseHit(worldPos);
-	if (unitIdx != -1)
+	if (currentSelectCharacter != NULL)
 	{
-		currentSelectCharacter = &all_units[unitIdx];
-		currentSelectCharacter->Selected();
+		currentSelectCharacter->UnSelected();
+		currentSelectCharacter = NULL;
 	}
-	else
-	{
-		if (currentSelectCharacter != NULL)
-		{
-			currentSelectCharacter->UnSelected();
-			currentSelectCharacter = NULL;
-		}
-	}
+	
 }
 
 void OnMouseLeftClick(int x, int y)
@@ -247,7 +257,7 @@ void OnMouseLeftClick(int x, int y)
 			currentSelectCharacter->UnSelected();
 		}
 
-		currentSelectCharacter = &all_units[unitIdx];
+		currentSelectCharacter = &Character::all_units[unitIdx];
 		currentSelectCharacter->Selected();
 	}
 	else
@@ -271,14 +281,14 @@ void OnMouseLeftDrag(int x, int y)
 	
 }
 
-void CreateUnit(char* model, float posX, float posY)
+void CreateUnit(char* model, int party, float posX, float posY)
 {
 	float pos[3], fDir[3], uDir[3];
 	pos[0] = posX; pos[1] = posY; pos[2] = 1000.0f;
 	fDir[0] = 1.0f; fDir[1] = -1.0f; fDir[2] = 0.0f;
 	uDir[0] = 0.0f; uDir[1] = 0.0f; uDir[2] = 1.0f;
 
-	Character actor(model);
+	Character actor(model, party);
 
 	actor.Start();
 
@@ -289,16 +299,17 @@ void CreateUnit(char* model, float posX, float posY)
 
 	actor.InitActions("Idle", "NormalAttack1", "Run", NULL, NULL, NULL);
 
-	all_units.push_back(actor);
+	Character::all_units.push_back(actor);
+	Character::all_unit_ids.push_back(actor.GetFnCharacterID());
 }
 
 int CheckMouseHit(float* worldPos)
 {
 	int ii;
-	for (ii = 0; ii < all_units.size(); ii++)
+	for (ii = 0; ii < Character::all_units.size(); ii++)
 	{
 		float pos[3];
-		all_units[ii].GetFnCharacter().GetPosition(pos);
+		Character::all_units[ii].GetFnCharacter().GetPosition(pos);
 
 		float distance = MathHelper::VectorDistance(worldPos, pos);
 		if (distance < 70)
@@ -313,8 +324,8 @@ int CheckMouseHit(float* worldPos)
 void AllUnitsUpdate(int skip)
 {
 	int ii;
-	for (ii = 0; ii < all_units.size(); ii++)
+	for (ii = 0; ii < Character::all_units.size(); ii++)
 	{
-		all_units[ii].Update(skip);
+		Character::all_units[ii].Update(skip);
 	}
 }

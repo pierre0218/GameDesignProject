@@ -15,12 +15,12 @@ void FSMState::AddTransition(Transition trans, StateID id)
 
 	// Since this is a Deterministic FSM,
 	//   check if the current transition was already inside the map
-	if (transitionMap.count(trans))
+	if (transitionMap->count(trans))
 	{
 		return;
 	}
 
-	transitionMap[trans] = id;
+	(*transitionMap)[trans] = id;
 }
 
 void FSMState::DeleteTransition(Transition trans)
@@ -32,9 +32,9 @@ void FSMState::DeleteTransition(Transition trans)
 	}
 
 	// Check if the pair is inside the map before deleting
-	if (transitionMap.count(trans))
+	if (transitionMap->count(trans))
 	{
-		transitionMap.erase(trans);
+		transitionMap->erase(trans);
 		return;
 	}
 }
@@ -42,9 +42,9 @@ void FSMState::DeleteTransition(Transition trans)
 StateID FSMState::GetOutputState(Transition trans)
 {
 	// Check if the map has this transition
-	if (transitionMap.count(trans))
+	if (transitionMap->count(trans))
 	{
-		return transitionMap[trans];
+		return (*transitionMap)[trans];
 	}
 	return StateID::NullStateID;
 }
