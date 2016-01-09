@@ -9,14 +9,9 @@ class Character
 
 	GAMEFX_SYSTEMid gFXID = FAILED_ID;
 	
-
-	bool gotHit;
-	int gotHitTimer;
-	
 	char* mModelName;
 	FnCharacter mCharacter;
 
-	void walk();
 	void MakeFSM();
 public:
 	Character(){};
@@ -31,6 +26,10 @@ public:
 	float* initPos;
 	FSMSystem* fsm;
 	int enemyTarget;
+
+	bool gotHit;
+	int gotHitTimer;
+	int lastAttackFrame;
 
 	static vector<Character> all_units;
 	static vector<CHARACTERid> all_unit_ids;
@@ -110,6 +109,18 @@ public:
 		mCharacter.SetCurrentAction(NULL, 0, attackID, 5.0f);
 	}
 
+	void SetGotHitAnimation()
+	{
+		damage1ID = mCharacter.GetBodyAction(NULL, "Damage1");
+		mCharacter.SetCurrentAction(NULL, 0, damage1ID, 5.0f);
+	}
+
+	void SetDieAnimation()
+	{
+		dieID = mCharacter.GetBodyAction(NULL, "Die");
+		mCharacter.SetCurrentAction(NULL, 0, dieID, 5.0f);
+	}
+
 	bool CheckMouseHit(float* worldPos);
 
 	void Selected();
@@ -129,6 +140,12 @@ public:
 		mCharacterid = c.GetFnCharacterID();
 		stateID = StateID::IdleStateID;
 	};
+	void DoBeforeEntering()
+	{
+		//mCharacter = *Character::all_units_map[mCharacterid];
+		Character::all_units_map[mCharacterid]->SetIdleAnimation();
+
+	};
 	void Reason(int skip)
 	{
 		int ii;
@@ -145,14 +162,17 @@ public:
 
 				if (MathHelper::VectorDistance(playerPos, enemyPos) < 200)
 				{
-					Character::all_units_map[mCharacterid]->SetEnemyIdx(ii);
-
-					if (Character::all_units_map[mCharacterid]->fsm->currentState->stateID != StateID::ChasingStateID)
+					if (!Character::all_units[ii].dead)
 					{
-						Character::all_units_map[mCharacterid]->SetTransition(Transition::GotoChasing);
-					}
+						Character::all_units_map[mCharacterid]->SetEnemyIdx(ii);
 
-					break;
+						if (Character::all_units_map[mCharacterid]->fsm->currentState->stateID != StateID::ChasingStateID)
+						{
+							Character::all_units_map[mCharacterid]->SetTransition(Transition::GotoChasing);
+						}
+
+						break;
+					}
 				}
 			}
 		}
@@ -300,6 +320,7 @@ public:
 class AttackState : public FSMState
 {
 	CHARACTERid mCharacterid;
+	int frameCounter;
 public:
 	AttackState(Character& c)
 	{
@@ -309,23 +330,82 @@ public:
 	void DoBeforeEntering()
 	{
 		Character::all_units_map[mCharacterid]->SetAttackAnimation();
+		frameCounter = Character::all_units_map[mCharacterid]->lastAttackFrame;
 	}
 	void Reason(int skip)
 	{
-		int ii;
-		for (ii = 0; ii < Character::all_units.size(); ii++)
-		{
-			if (Character::all_units_map[mCharacterid]->GetFnCharacterID() == Character::all_units[ii].GetFnCharacterID())
-				continue;
-
-			if (Character::all_units_map[mCharacterid]->party != Character::all_units[ii].party)
-			{
-				int a = 0;
-			}
-		}
+		
 	};
 	void Act(int skip)
 	{
+		frameCounter++;
+		Character::all_units_map[mCharacterid]->lastAttackFrame = frameCounter;
+
+		float currentPos[3], playerDir[3], fDir[3], upDir[3];
+		Character::all_units_map[mCharacterid]->GetFnCharacter().GetPosition(currentPos);
+		Character::all_units_map[mCharacterid]->GetFnCharacter().GetDirection(fDir, upDir);
+
+		float enemyPos[3];
+		Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].GetFnCharacter().GetPosition(enemyPos);
+
+		fDir[0] = enemyPos[0] - currentPos[0];
+		fDir[1] = enemyPos[1] - currentPos[1];
+
+		Character::all_units_map[mCharacterid]->GetFnCharacter().SetDirection(fDir, upDir);
+
+		Character::all_units_map[mCharacterid]->GetFnCharacter().Play(LOOP, (float)skip, FALSE, TRUE);
+
+		FnObject dummy(Character::all_units_map[mCharacterid]->dummyID);
+		dummy.SetPosition(currentPos);
+
+		if (frameCounter % 60 == 0)
+		{
+			int enemyFrame = Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].lastAttackFrame;
+			Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].HP -= 20;
+			
+			if (Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].dead)
+			{
+				Character::all_units_map[mCharacterid]->GotoIdleState();	
+			}
+			else
+			{
+				Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].SetTransition(Transition::GotHit);
+			}
+			frameCounter = 0;
+		}
+	};
+};
+
+class GotHitState : public FSMState
+{
+	CHARACTERid mCharacterid;
+	int frameCounter;
+public:
+	GotHitState(Character& c)
+	{
+		mCharacterid = c.GetFnCharacterID();
+		stateID = StateID::GotHitSateID;
+	};
+	void DoBeforeEntering()
+	{
+		if (Character::all_units_map[mCharacterid]->HP <= 0)
+		{
+			Character::all_units_map[mCharacterid]->SetTransition(Transition::Die);
+		}
+		else
+		{
+			Character::all_units_map[mCharacterid]->SetGotHitAnimation();
+			frameCounter = 0;
+		}
+	}
+	void Reason(int skip)
+	{
+
+	};
+	void Act(int skip)
+	{
+		frameCounter++;
+
 		float currentPos[3], playerDir[3], fDir[3], upDir[3];
 		Character::all_units_map[mCharacterid]->GetFnCharacter().GetPosition(currentPos);
 		Character::all_units_map[mCharacterid]->GetFnCharacter().GetDirection(fDir, upDir);
@@ -334,5 +414,37 @@ public:
 
 		FnObject dummy(Character::all_units_map[mCharacterid]->dummyID);
 		dummy.SetPosition(currentPos);
+
+		if (frameCounter % 30 == 0)
+		{
+			Character::all_units_map[mCharacterid]->SetTransition(Transition::GotoAttack);
+		}
+	};
+};
+
+class DieState : public FSMState
+{
+	CHARACTERid mCharacterid;
+
+public:
+	DieState(Character& c)
+	{
+		mCharacterid = c.GetFnCharacterID();
+		stateID = StateID::DieStateID;
+	};
+	void DoBeforeEntering()
+	{
+		Character::all_units_map[mCharacterid]->SetDieAnimation();
+
+	}
+	void Reason(int skip)
+	{
+
+	};
+	void Act(int skip)
+	{
+
+		Character::all_units_map[mCharacterid]->GetFnCharacter().Play(ONCE, (float)skip, FALSE, TRUE);
+		Character::all_units_map[mCharacterid]->dead = true;
 	};
 };

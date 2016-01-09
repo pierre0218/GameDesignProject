@@ -34,6 +34,7 @@ void QuitGame(BYTE, BOOL4);
 void OnMouseLeftClick(int x, int y);
 void OnMouseRightClick(int x, int y);
 void OnMouseLeftDrag(int x, int y);
+void OnMouseLeftRelease(int x, int y);
 
 // timer callbacks
 void GameAI(int);
@@ -43,15 +44,19 @@ void RenderIt(int);
 void MousePosition(int posx, int posy);
 
 float mousePos[2];
+float mousePressedPos[2];
+bool mouseLeftPressed = false;
 
 const float ScreenWidth = 1024;
-const float ScreenHeight = 576;
+const float ScreenHeight = 768;
 
 void CreateUnit(char* model, int party, float posX, float posY);
 int CheckMouseHit(float* worldPos);
 void AllUnitsUpdate(int skip);
 
 void BuildUnitsMap();
+
+OBJECTid spID0 = FAILED_ID;  // the sprite
 
 /*------------------
 the main program
@@ -77,7 +82,7 @@ void FyMain(int argc, char **argv)
 	CreateUnit("Robber02", 0, pos[0], pos[1] + 50);
 	CreateUnit("Donzo2", 1, pos[0] + 100, pos[1]+300);
 
-	//SpriteManager::instance()->CreateSprite("Skeleton_color", 200, 200, 500, 200, 0);
+	spID0 = SpriteManager::instance()->CreateSprite("transparent_red", 0, 0, 500, 200, 0);
 
 	// create a text object for displaying messages on screen
 	textID = FyCreateText("Trebuchet MS", 18, FALSE, FALSE);
@@ -87,7 +92,7 @@ void FyMain(int argc, char **argv)
 
 	FyBindMouseMoveFunction(MousePosition);
 
-	FyBindMouseFunction(LEFT_MOUSE, OnMouseLeftClick, OnMouseLeftDrag, NULL, NULL);
+	FyBindMouseFunction(LEFT_MOUSE, OnMouseLeftClick, OnMouseLeftDrag, OnMouseLeftRelease, NULL);
 	FyBindMouseFunction(RIGHT_MOUSE, OnMouseRightClick, NULL, NULL, NULL);
 
 	CameraManager::instance()->SetTarget(Character::all_units[0].GetFnCharacterID());
@@ -242,10 +247,15 @@ void OnMouseRightClick(int x, int y)
 
 void OnMouseLeftClick(int x, int y)
 {
+	mouseLeftPressed = true;
+
 	float worldPos[3], mousePos[2];
 
 	mousePos[0] = x;
 	mousePos[1] = y;
+
+	mousePressedPos[0] = x;
+	mousePressedPos[1] = y;
 
 	CameraManager::instance()->ScreenPointToWorld(mousePos, worldPos);
 
@@ -275,10 +285,63 @@ void OnMouseLeftClick(int x, int y)
 	//FXManager::instance()->CreateFX(worldPos);
 }
 
+void OnMouseLeftRelease(int x, int y)
+{
+	mouseLeftPressed = false;
+	FnSprite sp;
+	sp.ID(spID0);
+	sp.SetSize(0, 0);
+}
+
 
 void OnMouseLeftDrag(int x, int y)
 {
-	
+	if (mouseLeftPressed)
+	{
+		mousePos[0] = x;
+		mousePos[1] = y;
+		float w = mousePos[0] - mousePressedPos[0];
+		float h = mousePos[1] - mousePressedPos[1];
+
+		FnSprite sp;
+		sp.ID(spID0);
+
+		if (w > 0 && h > 0)
+		{
+			int ox = mousePressedPos[0];
+			int oy = ScreenHeight - mousePos[1];
+
+			sp.SetSize(w, h);
+			sp.SetPosition(ox, oy, 0);
+		}
+
+		if (w < 0 && h > 0)
+		{
+			int ox = mousePos[0];
+			int oy = ScreenHeight - mousePos[1];
+
+			sp.SetSize(MathHelper::Abs(w), h);
+			sp.SetPosition(ox, oy, 0);
+		}
+
+		if (w > 0 && h < 0)
+		{
+			int ox = mousePressedPos[0];
+			int oy = ScreenHeight - (mousePos[1] - h);
+
+			sp.SetSize(MathHelper::Abs(w), MathHelper::Abs(h));
+			sp.SetPosition(ox, oy, 0);
+		}
+
+		if (w < 0 && h < 0)
+		{
+			int ox = mousePos[0];
+			int oy = ScreenHeight - (mousePos[1] - h);
+
+			sp.SetSize(MathHelper::Abs(w), MathHelper::Abs(h));
+			sp.SetPosition(ox, oy, 0);
+		}
+	}
 }
 
 void CreateUnit(char* model, int party, float posX, float posY)
@@ -297,7 +360,7 @@ void CreateUnit(char* model, int party, float posX, float posY)
 	actor.GetFnCharacter().SetTerrainRoom(SceneManager::instance()->GetRoomID(), 10.0f);
 	BOOL4 beOK = actor.GetFnCharacter().PutOnTerrain(pos);
 
-	actor.InitActions("Idle", "NormalAttack1", "Run", NULL, NULL, NULL);
+	actor.InitActions("Idle", "NormalAttack1", "Run", "Damage1", "Damage2", "Die");
 
 	Character::all_units.push_back(actor);
 	Character::all_unit_ids.push_back(actor.GetFnCharacterID());

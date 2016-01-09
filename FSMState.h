@@ -9,7 +9,9 @@ enum Transition
 	GotoAttack = 1,
 	GotoIdle = 2,
 	GotoWalk = 3,
-	GotoChasing = 4
+	GotoChasing = 4,
+	GotHit = 5,
+	Die = 6
 };
 
 enum StateID
@@ -18,7 +20,9 @@ enum StateID
 	AttackStateID = 1,
 	IdleStateID = 2,
 	WalkStateID = 3,
-	ChasingStateID= 4
+	ChasingStateID= 4,
+	GotHitSateID = 5,
+	DieStateID = 6
 };
 
 class FSMState

@@ -26,7 +26,7 @@ Body Robber_02
       ActionData Damage1 SimpleAction DAMAGED01
       ActionData Damage2 SimpleAction DAMAGED02
       ActionData Run SimpleAction RUN
-      ActionData Dead SimpleAction DEAD
+      ActionData Die SimpleAction DEAD
 
    DefaultAction 0 CombatIdle
 

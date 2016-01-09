@@ -20,8 +20,8 @@ Body Donzo
       ActionData Idle SimpleAction Idle
       ActionData NormalAttack1 SimpleAction AttackL1
       ActionData AttackL2 SimpleAction AttackL2
-      ActionData DamageL SimpleAction DamageL
-      ActionData DamageH SimpleAction DamageH
+      ActionData Damage1 SimpleAction DamageL
+      ActionData Damage2 SimpleAction DamageH
       ActionData Run SimpleAction Run
       ActionData AttackH SimpleAction AttackH
       ActionData Defence SimpleAction Defance

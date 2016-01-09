@@ -47,16 +47,27 @@ void Character::MakeFSM()
 	FSMState* attackState = new AttackState(*this);
 	attackState->AddTransition(Transition::GotoIdle, StateID::IdleStateID);
 	attackState->AddTransition(Transition::GotoChasing, StateID::ChasingStateID);
+	attackState->AddTransition(Transition::GotHit, StateID::GotHitSateID);
+	attackState->AddTransition(Transition::GotoWalk, StateID::WalkStateID);
+	
 
 	FSMState* chasingState = new ChasingState(*this);
 	chasingState->AddTransition(Transition::GotoIdle, StateID::IdleStateID);
 	chasingState->AddTransition(Transition::GotoAttack, StateID::AttackStateID);
 	chasingState->AddTransition(Transition::GotoWalk, StateID::WalkStateID);
 
+	FSMState* gotHitState = new GotHitState(*this);
+	gotHitState->AddTransition(Transition::GotoAttack, StateID::AttackStateID);
+	gotHitState->AddTransition(Transition::Die, StateID::DieStateID);
+
+	FSMState* dieState = new DieState(*this);
+
 	fsm->AddState(idleState);
 	fsm->AddState(walkingState);
 	fsm->AddState(attackState);
 	fsm->AddState(chasingState);
+	fsm->AddState(gotHitState);
+	fsm->AddState(dieState);
 }
 
 void Character::InitActions(char* idle, char* attack, char* run, char* damage1, char* damage2, char* die)
@@ -73,12 +84,13 @@ void Character::Update(int skip)
 {
 	/*if (gotHitTimer > 0 && !dead)
 	{
-		mCharacter.Play(ONCE, (float)skip, FALSE, TRUE);
+		//mCharacter.Play(ONCE, (float)skip, FALSE, TRUE);
 		gotHitTimer -= 1;
 		if (gotHitTimer <= 0)
 		{
 			gotHitTimer = 0;
-			mCharacter.SetCurrentAction(NULL, 0, idleID, 5.0f);
+			gotHit = false;
+			//mCharacter.SetCurrentAction(NULL, 0, idleID, 5.0f);
 		}
 	}
 	else if (dead)
@@ -102,44 +114,6 @@ void Character::Update(int skip)
 	dummy.SetPosition(currentPos);
 }
 
-void Character::walk()
-{
-	float currentPos[3], playerDir[3], fDir[3], upDir[3];
-	mCharacter.GetPosition(currentPos);
-	mCharacter.GetDirection(fDir, upDir);
-
-	float distanceX = targetPos[0] - initPos[0];
-	float distanceY = targetPos[1] - initPos[1];
-
-	float norm_sqr = distanceX*distanceX + distanceY*distanceY;
-	float norm = sqrt(norm_sqr);
-
-	playerDir[0] = distanceX;
-	playerDir[1] = distanceY;
-	playerDir[2] = fDir[2];
-
-	if (MathHelper::Abs(targetPos[0] - currentPos[0]) > 5 || MathHelper::Abs(targetPos[1] - currentPos[1]) > 5)
-	{
-		if (MathHelper::Abs(distanceX) > 0 && MathHelper::Abs(distanceY) > 0)
-		{
-			currentPos[0] = distanceX*5 / norm + currentPos[0];
-			currentPos[1] = distanceY*5 / norm + currentPos[1];
-		}
-
-		mCharacter.SetPosition(currentPos);
-		mCharacter.SetDirection(playerDir, upDir);
-	}
-	else
-	{
-		ACTIONid currentActid = mCharacter.GetCurrentAction(NULL);
-		if (currentActid != idleID)
-		{
-			mCharacter.SetCurrentAction(NULL, 0, idleID, 5.0f);
-			dead = false;
-			isWalking = false;
-		}
-	}
-}
 
 void Character::GetHit(int damage)
 {
@@ -149,13 +123,13 @@ void Character::GetHit(int damage)
 		HP = 0;
 		if (!dead)
 		{
-			mCharacter.SetCurrentAction(NULL, 0, dieID, 5.0f);
+			//mCharacter.SetCurrentAction(NULL, 0, dieID, 5.0f);
 			dead = true;
 		}
 	}
 	else
 	{
-		mCharacter.SetCurrentAction(NULL, 0, damage2ID, 5.0f);
+		//mCharacter.SetCurrentAction(NULL, 0, damage2ID, 5.0f);
 		gotHit = true;
 		gotHitTimer = 20;
 	}

@@ -27,8 +27,8 @@ Body Lyubu
       ActionData HeavyAttack2 SimpleAction HeavyAttack2
       ActionData HeavyAttack3 SimpleAction HeavyAttack3
       ActionData HeavyDamaged SimpleAction HeavyDamaged
-      ActionData RightDamaged SimpleAction RightDamaged
-      ActionData LeftDamaged SimpleAction LeftDamaged
+      ActionData Damage1 SimpleAction RightDamaged
+      ActionData Damage2 SimpleAction LeftDamaged
       ActionData Die SimpleAction Die
       ActionData Idle SimpleAction Idle
       ActionData Walk SimpleAction Walk
