@@ -12,7 +12,8 @@ class CameraManager
 	float cameraHeight = CameraBaseHeight;
 	//camera control parameters
 	float distance = 1500;
-	float moveSpeed = 10;
+	float moveSpeed = 50;
+	float zoomSpeed = 100;
 	float rot_x = 0;
 	float rot_y = -30;
 
@@ -31,7 +32,7 @@ public:
 	void MoveLeft2D();
 	void MoveUp2D();
 	void MoveDown2D();
-
+	void Zoom(float value);
 
 	FnCamera GetCamera()
 	{

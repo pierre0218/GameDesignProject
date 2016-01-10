@@ -8,16 +8,21 @@ class Character
 	CHARACTERid actorID;
 
 	GAMEFX_SYSTEMid gFXID = FAILED_ID;
+
+	GAMEFX_SYSTEMid atkFXID = FAILED_ID;
 	
 	char* mModelName;
+	char* mFXName;
 	FnCharacter mCharacter;
 
 	void MakeFSM();
 public:
 	Character(){};
 	Character(char* modelName, int party);
+	Character(char* modelName, char* fxName, int party, int HP, float attackDistance);
 	ACTIONid idleID, attackID, runID, damage1ID, damage2ID, dieID;
 	OBJECTid dummyID = FAILED_ID;
+	OBJECTid dummy2ID = FAILED_ID;
 	int HP = 0;
 	int party;
 	bool isWalking = false;
@@ -25,11 +30,16 @@ public:
 	float* targetPos;
 	float* initPos;
 	FSMSystem* fsm;
-	int enemyTarget;
+	CHARACTERid enemyTarget;
+
+	float chasingDistance = 200;
+	float attackDistance = 70;
 
 	bool gotHit;
 	int gotHitTimer;
 	int lastAttackFrame;
+
+	int atkFxFrameCount = 0;
 
 	static vector<Character> all_units;
 	static vector<CHARACTERid> all_unit_ids;
@@ -47,9 +57,9 @@ public:
 	    party = i;
 	}
 
-	void SetEnemyIdx(int idx)
+	void SetEnemyIdx(CHARACTERid id)
 	{
-		enemyTarget = idx;
+		enemyTarget = id;
 	}
 
 	CHARACTERid GetFnCharacterID()
@@ -126,6 +136,12 @@ public:
 	void Selected();
 	void UnSelected();
 
+	void PlayAttackFX(float* pos);
+	void StopAttackFX();
+
+	void RemoveAttackFX();
+	bool playAtkFX = false;
+
 	bool operator==(Character& rhs);
 	bool operator!=(Character& rhs);
 	bool operator!=(int rhs);
@@ -148,23 +164,23 @@ public:
 	};
 	void Reason(int skip)
 	{
-		int ii;
-		for (ii = 0; ii < Character::all_units.size(); ii++)
+
+		for (std::map<CHARACTERid, Character*>::iterator it = Character::all_units_map.begin(); it != Character::all_units_map.end(); ++it)
 		{
-			if (Character::all_units_map[mCharacterid]->GetFnCharacterID() == Character::all_units[ii].GetFnCharacterID())
+			if (Character::all_units_map[mCharacterid]->GetFnCharacterID() == it->second->GetFnCharacterID())
 				continue;
 
-			if (Character::all_units_map[mCharacterid]->party != Character::all_units[ii].party)
+			if (Character::all_units_map[mCharacterid]->party != it->second->party)
 			{
 				float playerPos[3], enemyPos[3];
 				Character::all_units_map[mCharacterid]->GetFnCharacter().GetPosition(playerPos);
-				Character::all_units[ii].GetFnCharacter().GetPosition(enemyPos);
+				it->second->GetFnCharacter().GetPosition(enemyPos);
 
-				if (MathHelper::VectorDistance(playerPos, enemyPos) < 200)
+				if (MathHelper::VectorDistance(playerPos, enemyPos) < Character::all_units_map[mCharacterid]->chasingDistance)
 				{
-					if (!Character::all_units[ii].dead)
+					if (!it->second->dead)
 					{
-						Character::all_units_map[mCharacterid]->SetEnemyIdx(ii);
+						Character::all_units_map[mCharacterid]->SetEnemyIdx(it->first);
 
 						if (Character::all_units_map[mCharacterid]->fsm->currentState->stateID != StateID::ChasingStateID)
 						{
@@ -176,6 +192,7 @@ public:
 				}
 			}
 		}
+		
 	};
 	void Act(int skip)
 	{
@@ -198,9 +215,14 @@ public:
 		Character::all_units_map[mCharacterid]->SetRunAnimation();
 
 	};
-	void Reason(int skip){};
+	void Reason(int skip)
+	{
+
+	};
 	void Act(int skip)
 	{
+		Character::all_units_map[mCharacterid]->GetFnCharacter().Play(LOOP, (float)skip, FALSE, TRUE);
+
 		float currentPos[3], playerDir[3], fDir[3], upDir[3];
 		Character::all_units_map[mCharacterid]->GetFnCharacter().GetPosition(currentPos);
 		Character::all_units_map[mCharacterid]->GetFnCharacter().GetDirection(fDir, upDir);
@@ -240,8 +262,6 @@ public:
 			}
 		}
 
-		Character::all_units_map[mCharacterid]->GetFnCharacter().Play(LOOP, (float)skip, FALSE, TRUE);
-
 		FnObject dummy(Character::all_units_map[mCharacterid]->dummyID);
 		dummy.SetPosition(currentPos);
 	};
@@ -269,7 +289,7 @@ public:
 		Character::all_units_map[mCharacterid]->GetFnCharacter().GetDirection(fDir, upDir);
 
 		float enemyPos[3];
-		Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].GetFnCharacter().GetPosition(enemyPos);
+		Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->GetFnCharacter().GetPosition(enemyPos);
 
 		float distanceX = enemyPos[0] - Character::all_units_map[mCharacterid]->initPos[0];
 		float distanceY = enemyPos[1] - Character::all_units_map[mCharacterid]->initPos[1];
@@ -280,7 +300,7 @@ public:
 		playerDir[0] = distanceX;
 		playerDir[1] = distanceY;
 		playerDir[2] = fDir[2];
-		if (MathHelper::Abs(enemyPos[0] - currentPos[0]) > 200 || MathHelper::Abs(enemyPos[1] - currentPos[1]) > 200)
+		if (MathHelper::Abs(enemyPos[0] - currentPos[0]) > Character::all_units_map[mCharacterid]->chasingDistance || MathHelper::Abs(enemyPos[1] - currentPos[1]) > Character::all_units_map[mCharacterid]->chasingDistance)
 		{
 			ACTIONid currentActid = Character::all_units_map[mCharacterid]->GetFnCharacter().GetCurrentAction(NULL);
 			if (currentActid != Character::all_units_map[mCharacterid]->idleID)
@@ -290,7 +310,7 @@ public:
 				Character::all_units_map[mCharacterid]->GotoIdleState();
 			}
 		}
-		else if (MathHelper::Abs(enemyPos[0] - currentPos[0]) > 70 || MathHelper::Abs(enemyPos[1] - currentPos[1]) > 70)
+		else if (MathHelper::Abs(enemyPos[0] - currentPos[0]) > Character::all_units_map[mCharacterid]->attackDistance || MathHelper::Abs(enemyPos[1] - currentPos[1]) > Character::all_units_map[mCharacterid]->attackDistance)
 		{
 			if (MathHelper::Abs(distanceX) > 0 && MathHelper::Abs(distanceY) > 0)
 			{
@@ -331,6 +351,17 @@ public:
 	{
 		Character::all_units_map[mCharacterid]->SetAttackAnimation();
 		frameCounter = Character::all_units_map[mCharacterid]->lastAttackFrame;
+
+		float enemyPos[3];
+		Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->GetFnCharacter().GetPosition(enemyPos);
+
+
+		Character::all_units_map[mCharacterid]->PlayAttackFX(enemyPos);
+	}
+
+	void DoBeforeLeaving()
+	{
+		Character::all_units_map[mCharacterid]->StopAttackFX();
 	}
 	void Reason(int skip)
 	{
@@ -346,32 +377,39 @@ public:
 		Character::all_units_map[mCharacterid]->GetFnCharacter().GetDirection(fDir, upDir);
 
 		float enemyPos[3];
-		Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].GetFnCharacter().GetPosition(enemyPos);
+		Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->GetFnCharacter().GetPosition(enemyPos);
 
-		fDir[0] = enemyPos[0] - currentPos[0];
-		fDir[1] = enemyPos[1] - currentPos[1];
-
-		Character::all_units_map[mCharacterid]->GetFnCharacter().SetDirection(fDir, upDir);
-
-		Character::all_units_map[mCharacterid]->GetFnCharacter().Play(LOOP, (float)skip, FALSE, TRUE);
-
-		FnObject dummy(Character::all_units_map[mCharacterid]->dummyID);
-		dummy.SetPosition(currentPos);
-
-		if (frameCounter % 60 == 0)
+		if (MathHelper::Abs(enemyPos[0] - currentPos[0]) > Character::all_units_map[mCharacterid]->attackDistance + 10 || MathHelper::Abs(enemyPos[1] - currentPos[1]) > Character::all_units_map[mCharacterid]->attackDistance + 10)
 		{
-			int enemyFrame = Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].lastAttackFrame;
-			Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].HP -= 20;
-			
-			if (Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].dead)
+			Character::all_units_map[mCharacterid]->SetTransition(Transition::GotoChasing);
+		}
+		else
+		{
+			fDir[0] = enemyPos[0] - currentPos[0];
+			fDir[1] = enemyPos[1] - currentPos[1];
+
+			Character::all_units_map[mCharacterid]->GetFnCharacter().SetDirection(fDir, upDir);
+
+			Character::all_units_map[mCharacterid]->GetFnCharacter().Play(LOOP, (float)skip, FALSE, TRUE);
+
+			FnObject dummy(Character::all_units_map[mCharacterid]->dummyID);
+			dummy.SetPosition(currentPos);
+
+			if (frameCounter % 60 == 0)
 			{
-				Character::all_units_map[mCharacterid]->GotoIdleState();	
+				int enemyFrame = Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->lastAttackFrame;
+				Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->HP -= 20;
+
+				if (Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->dead)
+				{
+					Character::all_units_map[mCharacterid]->GotoIdleState();
+				}
+				else
+				{
+					Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->SetTransition(Transition::GotHit);
+				}
+				frameCounter = 0;
 			}
-			else
-			{
-				Character::all_units[Character::all_units_map[mCharacterid]->enemyTarget].SetTransition(Transition::GotHit);
-			}
-			frameCounter = 0;
 		}
 	};
 };
@@ -435,7 +473,7 @@ public:
 	void DoBeforeEntering()
 	{
 		Character::all_units_map[mCharacterid]->SetDieAnimation();
-
+		Character::all_units_map[mCharacterid]->RemoveAttackFX();
 	}
 	void Reason(int skip)
 	{

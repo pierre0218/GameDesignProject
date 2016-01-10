@@ -71,6 +71,23 @@ void CameraManager::CameraFocus()
 	camera.SetDirection(forwardDir, upDir);
 }
 
+void CameraManager::Zoom(float value)
+{
+	float camPos[3], fDir[3], upDir[3], moveDir[3];
+
+	camera.GetPosition(camPos);
+	camera.GetDirection(fDir, upDir);
+
+	MathHelper::VectorNormalize(fDir, moveDir);
+
+	camPos[0] = camPos[0] + value * zoomSpeed * moveDir[0];
+	camPos[1] = camPos[1] + value * zoomSpeed * moveDir[1];
+	camPos[2] = camPos[2] + value * zoomSpeed * moveDir[2];
+
+	camera.SetPosition(camPos);
+}
+
+
 void CameraManager::MoveRight2D()
 {
 	float camPos[3], MoveDir[3];

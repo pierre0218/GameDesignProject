@@ -8,6 +8,15 @@ Character::Character(char* modelName, int p)
 	party = p;
 }
 
+Character::Character(char* modelName, char* fxName, int p, int hp, float atkDistance)
+{
+	mModelName = modelName;
+	mFXName = fxName;
+	party = p;
+	HP = hp;
+	attackDistance = atkDistance;
+}
+
 void Character::Start()
 {
 	targetPos = new float[3];
@@ -16,7 +25,7 @@ void Character::Start()
 	idleID = 0;
 	enemyTarget = 0;
 
-	HP = 100;
+	//HP = 100;
 	// load the character
 	FySetModelPath("Data\\NTU6\\Characters");
 	FySetTexturePath("Data\\NTU6\\Characters");
@@ -28,6 +37,7 @@ void Character::Start()
 	mCharacter.ID(actorID);
 
 	dummyID = SceneManager::instance()->GetScene().CreateObject(MODEL);
+	dummy2ID = SceneManager::instance()->GetScene().CreateObject(MODEL);
 	dead = false;
 
 	MakeFSM();
@@ -104,6 +114,14 @@ void Character::Update(int skip)
 
 	//walk();
 
+	if (atkFXID != NULL && playAtkFX) {
+		atkFxFrameCount++;
+		//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
+		FnGameFXSystem gxS(atkFXID);
+		gxS.Play((float)skip, LOOP);
+
+	}
+
 	fsm->currentState->Reason(skip);
 	fsm->currentState->Act(skip);
 
@@ -138,7 +156,7 @@ void Character::GetHit(int damage)
 void Character::Selected()
 {
 	// remove the old one if necessary
-	//if (gFXID == NULL) {
+	if (gFXID == NULL) {
 		//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
 		// create a new game FX system
 		gFXID = SceneManager::instance()->GetScene().CreateGameFXSystem();
@@ -154,14 +172,71 @@ void Character::Selected()
 			gxS.SetParentObjectForAll(dummyID);// .SetPlayLocation(pos);
 			gxS.PlayFrame(30);
 		}
-	//}
+	}
+	else
+	{
+		FnGameFXSystem gxS(gFXID);
+		gxS.SetParentObjectForAll(dummyID);// .SetPlayLocation(pos);
+		gxS.PlayFrame(30);
+	}
 }
 
 void Character::UnSelected()
 {
 	if (gFXID != NULL) {
-		SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
+		//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
+		FnGameFXSystem gxS(gFXID);
+		gxS.SetParentObjectForAll(dummy2ID);// .SetPlayLocation(pos);
+		gxS.PlayFrame(30);
+
 	}
+}
+
+void Character::RemoveAttackFX()
+{
+	if (atkFXID != NULL) {
+		FnGameFXSystem gxS(atkFXID);
+		gxS.SetParentObjectForAll(dummy2ID);// .SetPlayLocation(pos);
+		gxS.Pause();
+		SceneManager::instance()->GetScene().DeleteGameFXSystem(atkFXID);
+	}
+}
+
+void Character::PlayAttackFX(float* pos)
+{
+	if (atkFXID == NULL) {
+		//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
+		// create a new game FX system
+		atkFXID = SceneManager::instance()->GetScene().CreateGameFXSystem();
+
+		FnGameFXSystem gxS(atkFXID);
+
+		// play the FX on it
+		BOOL4 beOK = gxS.Load(mFXName, TRUE);
+		if (beOK) {
+			gxS.SetPlayLocation(pos);
+		}
+	}
+	else
+	{
+		FnGameFXSystem gxS(atkFXID);
+		gxS.SetParentObjectForAll(dummyID);// .SetPlayLocation(pos);
+	}
+
+	playAtkFX = true;
+}
+
+void Character::StopAttackFX()
+{
+	if (atkFXID != NULL) {
+		//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
+		FnGameFXSystem gxS(atkFXID);
+		gxS.SetParentObjectForAll(dummy2ID);// .SetPlayLocation(pos);
+		gxS.Pause();
+
+	}
+
+	playAtkFX = false;
 }
 
 bool Character::CheckMouseHit(float* worldPos)
