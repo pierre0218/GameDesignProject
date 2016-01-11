@@ -73,7 +73,7 @@ public:
 			int offset_x = sign_x*(rand() % 70 + 50);
 			int offset_y = sign_y*(rand() % 70 + 50);
 
-			UnitManager::instance()->CreateUnit("Robber02", "SpellHome_01", 0, 100, 70, mPos[0] + offset_x, mPos[1] + offset_y);
+			UnitManager::instance()->CreateUnit("Robber02", "AttacKBasic", 0, 100, 70, mPos[0] + offset_x, mPos[1] + offset_y);
 
 			int ii;
 			for (ii = 0; ii < Character::all_units.size(); ii++)

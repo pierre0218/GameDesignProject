@@ -107,11 +107,11 @@ void FyMain(int argc, char **argv)
 //	UnitManager::instance()->CreateUnit("Footman01", 1, 100, 70, pos[0] + 50, pos[1] + 300);
 //	UnitManager::instance()->CreateUnit("Sorcerer01", 1, 100, 100, pos[0], pos[1] + 300);
 
-	UnitManager::instance()->CreateUnit("Footman01", "AttacKBasic", 1, 100, 70, 3005, -2611);
-	UnitManager::instance()->CreateUnit("Footman01", "AttacKBasic", 1, 100, 70, 2400, -2783);
+	UnitManager::instance()->CreateUnit("Footman01", "Blow_01e", 1, 100, 70, 3005, -2611);
+	UnitManager::instance()->CreateUnit("Footman01", "Blow_01e", 1, 100, 70, 2400, -2783);
 	UnitManager::instance()->CreateUnit("Sorcerer01", "SpellHome_02", 1, 100, 120, 1766, -2753);
 	UnitManager::instance()->CreateUnit("Sorcerer01", "SpellHome_02", 1, 100, 120, 1757, -2612);
-	UnitManager::instance()->CreateUnit("Footman01", "AttacKBasic", 1, 100, 70, 579, -2241);
+	UnitManager::instance()->CreateUnit("Footman01", "Blow_01e", 1, 100, 70, 579, -2241);
 	UnitManager::instance()->CreateUnit("Sorcerer01", "SpellHome_01", 1, 150, 100, 681, -2142);
 	UnitManager::instance()->CreateUnit("Sorcerer01", "SpellHome_02", 1, 100, 120, 842, -2124);
 

@@ -136,7 +136,7 @@ public:
 	void Selected();
 	void UnSelected();
 
-	void PlayAttackFX(float* pos);
+	void PlayAttackFX(float* pos, int skip);
 	void StopAttackFX();
 
 	void RemoveAttackFX();
@@ -356,7 +356,7 @@ public:
 		Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->GetFnCharacter().GetPosition(enemyPos);
 
 
-		Character::all_units_map[mCharacterid]->PlayAttackFX(enemyPos);
+		
 	}
 
 	void DoBeforeLeaving()
@@ -378,6 +378,8 @@ public:
 
 		float enemyPos[3];
 		Character::all_units_map[Character::all_units_map[mCharacterid]->enemyTarget]->GetFnCharacter().GetPosition(enemyPos);
+
+		Character::all_units_map[mCharacterid]->PlayAttackFX(enemyPos,skip);
 
 		if (MathHelper::Abs(enemyPos[0] - currentPos[0]) > Character::all_units_map[mCharacterid]->attackDistance + 10 || MathHelper::Abs(enemyPos[1] - currentPos[1]) > Character::all_units_map[mCharacterid]->attackDistance + 10)
 		{

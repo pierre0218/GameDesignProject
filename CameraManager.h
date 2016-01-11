@@ -12,7 +12,7 @@ class CameraManager
 	float cameraHeight = CameraBaseHeight;
 	//camera control parameters
 	float distance = 1500;
-	float moveSpeed = 50;
+	float moveSpeed = 30;
 	float zoomSpeed = 100;
 	float rot_x = 0;
 	float rot_y = -30;

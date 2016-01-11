@@ -114,13 +114,7 @@ void Character::Update(int skip)
 
 	//walk();
 
-	if (atkFXID != NULL && playAtkFX) {
-		atkFxFrameCount++;
-		//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
-		FnGameFXSystem gxS(atkFXID);
-		gxS.Play((float)skip, LOOP);
-
-	}
+	
 
 	fsm->currentState->Reason(skip);
 	fsm->currentState->Act(skip);
@@ -202,7 +196,7 @@ void Character::RemoveAttackFX()
 	}
 }
 
-void Character::PlayAttackFX(float* pos)
+void Character::PlayAttackFX(float* pos, int skip)
 {
 	if (atkFXID == NULL) {
 		//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
@@ -219,8 +213,16 @@ void Character::PlayAttackFX(float* pos)
 	}
 	else
 	{
-		FnGameFXSystem gxS(atkFXID);
-		gxS.SetParentObjectForAll(dummyID);// .SetPlayLocation(pos);
+		//FnGameFXSystem gxS(atkFXID);
+		//gxS.SetPlayLocation(pos);
+
+	//	if (atkFXID != NULL) {
+			atkFxFrameCount++;
+			//SceneManager::instance()->GetScene().DeleteGameFXSystem(gFXID);
+			FnGameFXSystem gxS(atkFXID);
+			gxS.SetPlayLocation(pos);
+			BOOL4 isOK = gxS.Play((float)skip, LOOP);
+	//	}
 	}
 
 	playAtkFX = true;
